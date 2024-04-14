@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 typedef OpenedNotificationHandler = void Function(Map openedResult);
+typedef OpenedDeepLinkHandler = void Function(Map openedResult);
 
 // ignore: avoid_classes_with_only_static_members
 class IterableFlutter {
   static const MethodChannel _channel = MethodChannel('iterable_flutter');
 
   static OpenedNotificationHandler? _onOpenedNotification;
+  static OpenedDeepLinkHandler? _onOpenedDeepLink;
 
   static Future<void> initialize({
     required String apiKey,
@@ -77,6 +79,10 @@ class IterableFlutter {
     _onOpenedNotification = handler;
   }
 
+  static void setDeepLinkOpenedHandler(OpenedDeepLinkHandler handler) {
+    _onOpenedDeepLink = handler;
+  }
+
   static Future<dynamic> nativeMethodCallHandler(MethodCall methodCall) async {
     final arguments = methodCall.arguments as Map<dynamic, dynamic>;
     final argumentsCleaned = sanitizeArguments(arguments);
@@ -85,6 +91,9 @@ class IterableFlutter {
       case "openedNotificationHandler":
         _onOpenedNotification?.call(argumentsCleaned);
         return "This data from native.....";
+      case "deepLinkHandler":
+        _onOpenedDeepLink?.call(argumentsCleaned);
+        return "Deep link datta from handler...";
       default:
         return "Nothing";
     }

@@ -151,7 +151,11 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
 
     
     public func handle(iterableURL url: URL, inContext context: IterableActionContext) -> Bool {
-        notifyPushNotificationOpened()
+        let payload = [
+            "path": url.path ?? ""
+        ] as [String : Any]
+
+        SwiftIterableFlutterPlugin.channel?.invokeMethod("deepLinkHandler", arguments: payload)
         return true
     }
     
