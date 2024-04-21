@@ -16,16 +16,14 @@ class IterableFlutter {
   static Future<void> initialize({
     required String apiKey,
     required String pushIntegrationName,
-    bool activeLogDebug = false,
-    String? authToken = null
+    bool activeLogDebug = false
   }) async {
     await _channel.invokeMethod(
       'initialize',
       {
         'apiKey': apiKey,
         'pushIntegrationName': pushIntegrationName,
-        'activeLogDebug': activeLogDebug,
-        'authToken': authToken
+        'activeLogDebug': activeLogDebug
       },
     );
     _channel.setMethodCallHandler(nativeMethodCallHandler);
@@ -39,6 +37,12 @@ class IterableFlutter {
         'jwt': jwt,
       },
     );
+  }
+
+  static Future<void> handleDeepLink(url) async {
+    print("handleDeepLink");
+    print(url);
+    await _channel.invokeMethod("handleDeepLink", {'url': url});
   }
 
   static Future<void> setUserId(String userId) async {
@@ -80,18 +84,20 @@ class IterableFlutter {
   }
 
   static void setDeepLinkOpenedHandler(OpenedDeepLinkHandler handler) {
+    print("calling setDeepLinkOpenedHandler ");
     _onOpenedDeepLink = handler;
   }
 
   static Future<dynamic> nativeMethodCallHandler(MethodCall methodCall) async {
+    print("nativeMethodCallHandler maybe deep? ${methodCall.method}");
     final arguments = methodCall.arguments as Map<dynamic, dynamic>;
     final argumentsCleaned = sanitizeArguments(arguments);
-
     switch (methodCall.method) {
       case "openedNotificationHandler":
         _onOpenedNotification?.call(argumentsCleaned);
         return "This data from native.....";
       case "deepLinkHandler":
+        print("deepLinkHandler running... ");
         _onOpenedDeepLink?.call(argumentsCleaned);
         return "Deep link datta from handler...";
       default:
@@ -103,7 +109,7 @@ class IterableFlutter {
       Map<dynamic, dynamic> arguments) {
     final result = arguments;
 
-    final data = result['additionalData'];
+    final data = result['additionalData'] ?? {};
     data.forEach((key, value) {
       if (value is String) {
         if (value[0] == '{' && value[value.length - 1] == '}') {

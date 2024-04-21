@@ -15,6 +15,8 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import org.json.JSONObject
 import java.util.*
+import java.net.URL
+
 
 
 /** IterableFlutterPlugin */
@@ -92,6 +94,14 @@ class IterableFlutterPlugin : FlutterPlugin, MethodCallHandler {
         var userInfo = call.argument<Map<String, Any>?>("params")
         IterableApi.getInstance().updateUser(JSONObject(userInfo))
         result.success(null)
+      }
+      "handleDeepLink" -> {
+        val argumentData = call.arguments as? Map<*, *>
+        val url = argumentData?.get("url") as String
+        IterableApi.getInstance().getAndTrackDeepLink(url) { result:String? ->
+            Log.d("HandleDeeplink", "Redirected to: $result")
+            channel.invokeMethod("deepLinkHandler", mapOf("path" to URL(result).path))
+        }
       }
       else -> {
         result.notImplemented()

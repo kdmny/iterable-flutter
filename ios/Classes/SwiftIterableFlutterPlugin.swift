@@ -9,6 +9,7 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
     var token: String? = nil
     
     public static func register(with registrar: FlutterPluginRegistrar) {
+        NSLog("calling channel register")
         channel = FlutterMethodChannel(name: "iterable_flutter", binaryMessenger: registrar.messenger())
         let instance = SwiftIterableFlutterPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel!)
@@ -34,8 +35,7 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
             
             let apiKey = args["apiKey"] as! String
             let pushIntegrationName = args["pushIntegrationName"] as! String
-            let authToken = args["authToken"] as! String
-            initialize(apiKey, pushIntegrationName, authToken)
+            initialize(apiKey, pushIntegrationName)
             
             result(nil)
         case "setEmail":
@@ -84,13 +84,20 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
             signOut()
 
             result(nil)
+        case "handleDeepLink":
+            NSLog("NSLog handleDeepLink")
+            let args = getPropertiesFromArguments(call.arguments)
+            let urlStr = args["url"] as! String
+            NSLog("deeplink \(urlStr)")
+            let url = URL(string: urlStr)
+            IterableAPI.handle(universalLink: url!)
+            result(nil)
         default:
             result(FlutterMethodNotImplemented)
         }
     }
     
-    private func initialize(_ apiKey: String, _ pushIntegrationName: String, _ authToken: String){
-        token = authToken
+    private func initialize(_ apiKey: String, _ pushIntegrationName: String){
         let config = IterableConfig()
         config.pushIntegrationName = pushIntegrationName
         config.autoPushRegistration = false
@@ -113,11 +120,12 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
     }
     
     public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [AnyHashable : Any] = [:]) -> Bool {
+        print("application")
         UNUserNotificationCenter.current().delegate = self
         
         return true
     }
-    
+
     public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         print("~~~~~ calling IterableAPI.register")
         IterableAPI.register(token: deviceToken)
@@ -151,10 +159,13 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
 
     
     public func handle(iterableURL url: URL, inContext context: IterableActionContext) -> Bool {
+        NSLog("deeplink: handle(iterableURL url: URL,")
+        NSLog("deeplink \(url.path)")
         let payload = [
-            "path": url.path ?? ""
+            "path": url.path ?? "",
         ] as [String : Any]
-
+        NSLog("calling deepLinkHandler up the channel")
+        NSLog("is there a channel? \(SwiftIterableFlutterPlugin.channel == nil)")
         SwiftIterableFlutterPlugin.channel?.invokeMethod("deepLinkHandler", arguments: payload)
         return true
     }
@@ -174,7 +185,5 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
         ] as [String : Any]
         
         SwiftIterableFlutterPlugin.channel?.invokeMethod("openedNotificationHandler", arguments: payload)
-        
     }
-    
 }
