@@ -163,6 +163,7 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
         NSLog("deeplink \(url.path)")
         let payload = [
             "path": url.path ?? "",
+            "query": url.query ?? ""
         ] as [String : Any]
         NSLog("calling deepLinkHandler up the channel")
         NSLog("is there a channel? \(SwiftIterableFlutterPlugin.channel == nil)")
