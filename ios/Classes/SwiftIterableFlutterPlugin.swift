@@ -23,6 +23,10 @@ public class SwiftIterableFlutterPlugin: NSObject, FlutterPlugin, UNUserNotifica
         completion(token)
     }
 
+    public func onAuthFailure(_ authFailure: AuthFailure) {
+        
+    }
+
     public func onTokenRegistrationFailed(_ reason: String?) {
         print("token registration failed")
         print(reason)
